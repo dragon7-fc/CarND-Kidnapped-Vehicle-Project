@@ -2,10 +2,15 @@ FROM dragon7/carnd-extended-kalman-filter-project
 
 # Install CarND-Kidnapped-Vehicle-Project
 WORKDIR /root/workspace
-RUN git clone https://github.com/udacity/CarND-Kidnapped-Vehicle-Project
+COPY ./ CarND-Kidnapped-Vehicle-Project/
 
-# Copy solution code
+# Create Eclipse IDE project
 WORKDIR /root/workspace/CarND-Kidnapped-Vehicle-Project
-COPY src/particle_filter.cpp src/
+RUN mkdir build
+RUN mv CMakeLists.txt src
+RUN sed -i 's/src/./g' src/CMakeLists.txt
+WORKDIR /root/workspace/CarND-Kidnapped-Vehicle-Project/build
+RUN cmake -G"Eclipse CDT4 - Unix Makefiles" -D CMAKE_BUILD_TYPE=Debug ../src/
+RUN make
 
 WORKDIR /root/workspace
