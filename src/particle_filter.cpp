@@ -124,7 +124,39 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
+  int i, j;
+  /*This variable is used for normalizing weights of all particles and bring them in the range
+    of [0, 1]*/
+  double weight_normalizer = 0.0;
 
+  for (i = 0; i < num_particles; i++) {
+    double particle_x = particles[i].x;
+    double particle_y = particles[i].y;
+    double particle_theta = particles[i].theta;
+
+    /*Step 1: Transform observations from vehicle co-ordinates to map co-ordinates.*/
+    //Vector containing observations transformed to map co-ordinates w.r.t. current particle.
+    vector<LandmarkObs> transformed_observations;
+
+    //Transform observations from vehicle's co-ordinates to map co-ordinates.
+    for (j = 0; j < observations.size(); j++) {
+      LandmarkObs transformed_obs;
+      transformed_obs.id = j;
+      transformed_obs.x = particle_x + (cos(particle_theta) * observations[j].x) - (sin(particle_theta) * observations[j].y);
+      transformed_obs.y = particle_y + (sin(particle_theta) * observations[j].x) + (cos(particle_theta) * observations[j].y);
+      transformed_observations.push_back(transformed_obs);
+    }
+
+    /*Step 2: Filter map landmarks to keep only those which are in the sensor_range of current
+     particle. Push them to predictions vector.*/
+    vector<LandmarkObs> predicted_landmarks;
+    for (j = 0; j < map_landmarks.landmark_list.size(); j++) {
+      Map::single_landmark_s current_landmark = map_landmarks.landmark_list[j];
+      if ((fabs((particle_x - current_landmark.x_f)) <= sensor_range) && (fabs((particle_y - current_landmark.y_f)) <= sensor_range)) {
+        predicted_landmarks.push_back(LandmarkObs {current_landmark.id_i, current_landmark.x_f, current_landmark.y_f});
+      }
+    }
+  }
 }
 
 void ParticleFilter::resample() {
