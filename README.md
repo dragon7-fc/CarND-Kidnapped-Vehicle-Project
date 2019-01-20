@@ -16,7 +16,7 @@
 [image12]: ./images/yaw_not_zero.png "yaw not zero"
 [image13]: ./images/map.png "map"
 [image14]: ./images/homogenous.png "homogenous"
-[image15]: ./images/multivariate_gaussian.png "Multivariate Gaussian"
+[image15]: ./images/multivariate.png "Multivariate Gaussian"
 [image16]: ./images/resample.png "resample"
 [image17]: ./images/result.png "result"
 
@@ -221,7 +221,7 @@ __NOTE__: When adding noise you may find `std::normal_distribution` and `std::de
 
 * Add measurements to each particle and add random Gaussian noise.
 
-| Yaw reate = 0        | Yaw rate != 0        |
+| Yaw rate = 0        | Yaw rate != 0        |
 |----------------------|----------------------|
 | ![alt text][image11] | ![alt text][image12] |
 

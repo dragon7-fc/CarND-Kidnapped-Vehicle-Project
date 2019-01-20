@@ -229,7 +229,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     weight_normalizer += particles[i].weight;
   }
 
-  /*Step 5: Normalize the weights of all particles since resmapling using probabilistic approach.*/
+  /*Step 5: Normalize the weights of all particles since resampling using probabilistic approach.*/
   for (unsigned int i = 0; i < particles.size(); i++) {
     particles[i].weight /= weight_normalizer;
     weights[i] = particles[i].weight;
