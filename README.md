@@ -1,36 +1,34 @@
-# Overview
-This repository contains all the code needed to complete the final project for the Localization course in Udacity's Self-Driving Car Nanodegree.
+# **Prticle Filter**
 
-#### Submission
-All you will need to submit is your `src` directory. You should probably do a `git pull` before submitting to verify that your project passes the most up-to-date version of the grading code (there are some parameters in `src/main.cpp` which govern the requirements on accuracy and run time).
+[//]: # (Image References)
 
-## Project Introduction
+[image1]: ./images/demo.gif "demo"
+[image2]: ./images/import.jpg "import"
+[image3]: ./images/existing_project.jpg "existing project"
+[image4]: ./images/select_project.png "select project"
+[image5]: ./images/final.png "final"
+[image6]: ./images/build_all.png "build all"
+[image7]: ./images/run_as.png "run as"
+[image8]: ./images/simulator.png "simulator"
+[image9]: ./images/flowchart.png "flowchart"
+[image10]: ./images/gaussian.png "Gaussian Distribution"
+[image11]: ./images/yaw_zero.png "yaw zero"
+[image12]: ./images/yaw_not_zero.png "yaw not zero"
+[image13]: ./images/map.png "map"
+[image14]: ./images/homogenous.png "homogenous"
+[image15]: ./images/multivariate_gaussian.png "Multivariate Gaussian"
+[image16]: ./images/resample.png "resample"
+[image17]: ./images/result.png "result"
+
+**Prticle Filter Project**
+
 Your robot has been kidnapped and transported to a new location! Luckily it has a map of this location, a (noisy) GPS estimate of its initial location, and lots of (noisy) sensor and control data.
 
 In this project you will implement a 2 dimensional particle filter in C++. Your particle filter will be given a map and some initial localization information (analogous to what a GPS would provide). At each time step your filter will also get observation and control data.
 
-## Running the Code
-This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)
+![alt text][image1]
 
-This repository includes two files that can be used to set up and install uWebSocketIO for either Linux or Mac systems. For windows you can use either Docker, VMware, or even Windows 10 Bash on Ubuntu to install uWebSocketIO.
-
-Once the install for uWebSocketIO is complete, the main program can be built and ran by doing the following from the project top directory.
-
-1. mkdir build
-2. cd build
-3. cmake ..
-4. make
-5. ./particle_filter
-
-Alternatively some scripts have been included to streamline this process, these can be leveraged by executing the following in the top directory of the project:
-
-1. ./clean.sh
-2. ./build.sh
-3. ./run.sh
-
-Tips for setting up your environment can be found [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
-
-Note that the programs that need to be written to accomplish the project are src/particle_filter.cpp, and particle_filter.h
+## Simulator behavior
 
 The program main.cpp has already been filled out, but feel free to modify it.
 
@@ -129,15 +127,140 @@ You can find the inputs to the particle filter in the `data` directory.
 
 > * Map data provided by 3D Mapping Solutions GmbH.
 
-## Success Criteria
-If your particle filter passes the current grading code in the simulator (you can make sure you have the current version at any time by doing a `git pull`), then you should pass!
+---
+## Dependencies
 
-The things the grading code is looking for are:
+* [simulator](https://github.com/udacity/self-driving-car-sim/releases)
+
+## Environment Setup
+
+1. Open Eclipse IDE
+
+__Linux__:
+```
+docker run --rm --name kidnap \
+    --net=host -e DISPLAY=$DISPLAY \
+    -v $HOME/.Xauthority:/root/.Xauthority \
+    dragon7/carnd-kidnapped-vehicle-project
+```
+
+__Mac__:
+```
+socat TCP-LISTEN:6000,reuseaddr,fork UNIX-CLIENT:\"$DISPLAY\"
+
+docker run --rm --name kidnap \
+    -e DISPLAY=[IP_ADDRESS]:0 \
+    -p 4567:4567 \
+    dragon7/carnd-kidnapped-vehicle-project
+```
+
+2. Import the project into Eclipse
+
+    1. Open Eclipse.
+    2. Import project using Menu `File > Import`
+    ![alt text][image2]
+    3. Select `General > Existing projects into workspace`
+    ![alt text][image3]
+    4. **Browse** `/root/workspace/CarND-Kidnapped-Vehicle-Project/build` and select the root build 
+    tree directory. Keep "Copy projects into workspace" unchecked.
+    ![alt text][image4]
+    5. Now you should have a fully functional eclipse project
+    ![alt text][image5]
+
+3. Code Style
+
+    1. From Eclipse go to `Window > Preferences > C/C++ > Code Style > Formatter`
+    2. Click Import
+    3. Select `/root/workspace/eclipse-cpp-google-style.xml`
+    4. Click Ok
+
+4. Build
+
+    * Select `Project -> Build All`
+    ![alt text][image6]
+
+    __OPTIONAL__: Build on command line
+    ```
+    cd /root/workspace/CarND-Kidnapped-Vehicle-Project/build
+    make
+    ```
+
+5. Run
+
+    * `Right click Project -> Run as -> 1 Local C++ Application`
+    ![alt text][image7]
+
+    __OPTIONAL__: Run on command line
+    
+    `/particle_filter`
 
 
-1. **Accuracy**: your particle filter should localize vehicle position and yaw to within the values specified in the parameters `max_translation_error` and `max_yaw_error` in `src/main.cpp`.
+6. Launch simulator
 
-2. **Performance**: your particle filter should complete execution within the time of 100 seconds.
+    ![alt text][image8]
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+---
+## Particle Filter General Flow
+
+![alt text][image9]
+
+### Initialization
+
+* Set the number of particles.
+```c++
+num_particles = 100;
+```
+* Initialize all particles to first position (based on estimates of x, y, theta and their uncertainties from GPS) and all weights to 1. 
+* Add random Gaussian noise to each particle.
+
+![alt text][image10]
+
+__NOTE__: When adding noise you may find `std::normal_distribution` and `std::default_random_engine` useful.
+
+### Prediction Step
+
+* Add measurements to each particle and add random Gaussian noise.
+
+| Yaw reate = 0        | Yaw rate != 0        |
+|----------------------|----------------------|
+| ![alt text][image11] | ![alt text][image12] |
+
+__NOTE__: Here we will use what we learned in the motion models lesson to predict where the vehicle will be at the next time step, by updating based on yaw rate and velocity, while accounting for Gaussian sensor noise.
+
+### Update Step
+
+* Update the weights of each particle using a mult-variate Gaussian distribution. 
+
+    1. Transform observations from vehicle coordinates to map coordinates.
+
+    ![alt text][image13]
+
+    ![alt text][image14]
+
+    __NOTE__: The observations are given in the VEHICLE'S coordinate system. Your particles are located according to the MAP'S coordinate system. You will need to transform between the two systems. Keep in mind that this transformation requires both rotation AND translation (but no scaling).
+
+    2. Filter map landmarks to keep only those which are in the sensor_range of current 
+     particle. Push them to predictions vector.
+
+    3. Associate observations to predicted landmarks using nearest neighbor algorithm.
+
+    __NOTE__: Find the predicted measurement that is closest to each observed measurement and assign the observed measurement to this particular landmark.
+
+    4. Calculate the weight of each particle using Multivariate Gaussian distribution.
+
+    ![alt text][image15]
+
+    5. Normalize the weights of all particles since resampling using probabilistic approach.
+
+
+
+### Resample
+
+* Resample particles with replacement with probability proportional to their weight. 
+
+![alt text][image16]
+
+---
+## Result
+
+![alt text][image17]
