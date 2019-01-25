@@ -202,11 +202,11 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     //Reset the weight of particle to 1.0
     particles[i].weight = 1.0;
 
-    double rho_x = std_landmark[0];
-    double rho_y = std_landmark[1];
-    double rho_x_2 = pow(rho_x, 2);
-    double rho_y_2 = pow(rho_y, 2);
-    double normalizer = (1.0/(2.0 * M_PI * rho_x * rho_y));
+    double sigma_x = std_landmark[0];
+    double sigma_y = std_landmark[1];
+    double sigma_x_2 = pow(sigma_x, 2);
+    double sigma_y_2 = pow(sigma_y, 2);
+    double normalizer = (1.0/(2.0 * M_PI * sigma_x * sigma_y));
     
     /*Calculate the weight of particle based on the multivariate Gaussian probability function*/
     for (unsigned int j = 0; j < transformed_observations.size(); j++) {
@@ -221,7 +221,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
         double pred_landmark_id = predicted_landmarks[k].id;
 
         if (trans_obs_id == pred_landmark_id) {
-          multi_prob = normalizer * exp(-1.0 * ((pow((trans_obs_x - pred_landmark_x), 2)/(2.0 * rho_x_2)) + (pow((trans_obs_y - pred_landmark_y), 2)/(2.0 * rho_y_2))));
+          multi_prob = normalizer * exp(-1.0 * ((pow((trans_obs_x - pred_landmark_x), 2)/(2.0 * sigma_x_2)) + (pow((trans_obs_y - pred_landmark_y), 2)/(2.0 * sigma_y_2))));
           particles[i].weight *= multi_prob;
         }
       }
